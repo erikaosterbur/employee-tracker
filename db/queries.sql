@@ -1,0 +1,1 @@
+--query all employees where manager id = null, if employee doesn't have manager id, must be a manager
