@@ -49,7 +49,6 @@ function init() {
     })
 };
 
-//if view all departments: id, name
 function getDepartments() {
     db.query("SELECT * FROM departments", function (err, results){
         if( err ) {
@@ -59,7 +58,7 @@ function getDepartments() {
         init();
     })
 };
-//if view all employees: id, first name, last name, title, department, salary, manager
+
 function getEmployees() {
     db.query("SELECT * FROM employee", function (err, results) {
       if (err) {
@@ -70,7 +69,6 @@ function getEmployees() {
     })
 };
 
-//if view all roles: id, title, department, salary
 function getRoles() {
     db.query("SELECT * FROM roles", function (err, results) {
       if ( err ) {
@@ -80,7 +78,6 @@ function getRoles() {
       init();
     })
 };
-
 
 function addDepartment() {
     inquirer.prompt([
@@ -100,8 +97,6 @@ function addDepartment() {
         })
     })
 };
-
-
 
 function addRole () {
     inquirer.prompt([
@@ -132,8 +127,6 @@ function addRole () {
         })
     })
 };
-
-
 
 function addEmployee() {
     inquirer.prompt([
@@ -172,7 +165,6 @@ function addEmployee() {
     
 };
 
-
 function updateEmployee() {
     inquirer.prompt([
         {
@@ -192,11 +184,5 @@ function updateEmployee() {
         db.query()
     )
 };
-
-
-
-
-
-
 
 init();
