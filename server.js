@@ -90,9 +90,15 @@ function addDepartment() {
             name: 'addDepartment'
         },
     ])
-    .then(
-        db.query()
-    )
+    .then(response => {
+        db.query("INSERT INTO departments (department_name) VALUES (?)", [response.addDepartment], (err, result) => {
+          if ( err ) {
+            console.log("Error")
+          }
+          else console.log("Department added");
+          init();
+        })
+    })
 };
 
 
@@ -116,9 +122,15 @@ function addRole () {
             choices: ['']
         },
     ])
-    .then(
-        db.query()
-    )
+    .then(response => {
+        db.query("INSERT INTO roles (title, salary) VALUES (?, ?)", [response.addRoleName, response.addRoleSalary], (err, result) => {
+          if ( err ) {
+            console.log("Error")
+          }
+          else console.log("Role added");
+          init();
+        })
+    })
 };
 
 
@@ -148,9 +160,15 @@ function addEmployee() {
             choices: ['']
         },
     ])
-    .then(
-        db.query()
-    )
+    .then(response => {
+        db.query("INSERT INTO employee (first_name, last_name) VALUES (?, ?)", [response.addFirstName, response.addLastName], (err, result) => {
+          if ( err ) {
+            console.log("Error")
+          }
+          else console.log("Employee added");
+          init();
+        })
+    })
     
 };
 
