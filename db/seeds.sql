@@ -23,5 +23,6 @@ VALUES  ("Jenny", "Jones"),
         ("Kelly", "Krook"),
         ("Rita", "Rodriguez"),
         ("Nancy", "Nickels"),
-        ("Tracy", "Towns");
+        ("Tracy", "Towns"),
+        ("Betty", "Brown");
 
