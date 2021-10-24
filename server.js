@@ -217,7 +217,6 @@ addEmployee = () => {
                 let managerIndex = values[1].findIndex(function (manager) {
                     return chosenManager === manager.first_name + ' ' + manager.last_name;
                 })
-                console.log(managerIndex);
                 let thisManagerId = values[1][managerIndex].id;
 
                 db.query("INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)", [response.addFirstName, response.addLastName, thisRoleId, thisManagerId], (err, result) => {
@@ -233,23 +232,72 @@ addEmployee = () => {
 };
 
 function updateEmployee() {
-    inquirer.prompt([
-        {
-            type: 'list',
-            message: "Which employee's role do you want to update?",
-            name: 'updateEmployee',
-            choices: ['']
-        },
-        {
-            type: 'list',
-            message: "Which role do you want to assign the selected employee?",
-            name: 'updateRole',
-            choices: ['']
-        }
-    ])
-    .then(
-        db.query()
-    )
+
+    let employeeDB = new Promise(function(resolve, reject) {
+        db.query("SELECT * FROM employee", function (err, results) {
+            if (err) {
+                reject(new Error("Error"));
+            } else {
+                resolve(results);
+            }
+        })
+    })
+
+    let rolesDB = new Promise(function(resolve, reject) {
+        db.query("SELECT id, title FROM roles", function (err, results) {
+            if (err) {
+                reject(new Error("Error"));
+            } else {
+                resolve(results);
+            }
+        })
+    })
+
+    Promise.all([employeeDB, rolesDB])
+        .then(values => {
+            let employees = values[0].map(function (employee) {
+                return employee.first_name + ' ' + employee.last_name;
+            })
+            let roles = values[1].map(function (role) {
+                return role.title;
+            });
+
+            inquirer.prompt([
+            {
+                type: 'list',
+                message: "Which employee's role do you want to update?",
+                name: 'updateEmployee',
+                choices: employees
+            },
+            {
+                type: 'list',
+                message: "Which role do you want to assign the selected employee?",
+                name: 'updateRole',
+                choices: roles
+            }
+            ])
+            .then(responses => {
+                let chosenEmployee = responses.updateEmployee;
+                    let employeeIndex = values[0].findIndex(function (employee) {
+                        return chosenEmployee === employee.first_name + ' ' + employee.last_name;
+                    })
+                    let thisEmployeeId = values[0][employeeIndex].id;
+    
+                    let chosenRole = responses.updateRole;
+                    let roleIndex = values[1].findIndex(function (role) {
+                        return chosenRole === role.title;
+                    })
+                    let thisRoleId = values[1][roleIndex].id;
+    
+                    db.query("UPDATE employee SET role_id = (?) WHERE id = (?)", [thisRoleId, thisEmployeeId], (err, result) => {
+                        if ( err ) {
+                            console.log("Error")
+                        }
+                        else console.log("Employee updated");
+                        init();
+                    })
+            })
+        })
 };
 
 init();
