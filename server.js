@@ -5,14 +5,15 @@ const cTable = require('console.table');
 require('dotenv').config();
 
 const db = mysql.createConnection(
-  {
-    host: 'localhost',
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME
-  },
-  console.log(`Connected to the ${process.env.DB_NAME} database.`)
-);
+    {
+        host: 'localhost',
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+        database: process.env.DB_NAME
+    },
+    console.log(`Connected to the database.`)
+)
+        
 
 function init() {
     inquirer.prompt([
@@ -98,71 +99,109 @@ function addDepartment() {
     })
 };
 
-function addRole () {
-    inquirer.prompt([
-        {
-            type: 'input',
-            message: 'What is the name of the role?',
-            name: 'addRoleName'
-        },
-        {
-            type: 'input',
-            message: 'What is the salary of the role?',
-            name: 'addRoleSalary'
-        },
-        {
-            type: 'list',
-            message: 'Which department does the role belong to?',
-            name: 'addRoleDepartment',
-            choices: ['']
-        },
-    ])
-    .then(response => {
-        db.query("INSERT INTO roles (title, salary) VALUES (?, ?)", [response.addRoleName, response.addRoleSalary], (err, result) => {
-          if ( err ) {
-            console.log("Error")
-          }
-          else console.log("Role added");
-          init();
+addRole = () => {
+    let departmentsDB = new Promise(function(resolve, reject) {
+        db.query("SELECT * FROM departments", function (err, results) {
+            if (err) {
+                reject(new Error("Error"));
+            } else {
+                resolve(results);
+            }
         })
+    })
+    departmentsDB
+    .then(values => {
+        let departments = values.map(function (department) {
+            return department.department_name;
+        });
+        inquirer.prompt([
+            {
+                type: 'input',
+                message: 'What is the name of the role?',
+                name: 'addRoleName'
+            },
+            {
+                type: 'input',
+                message: 'What is the salary of the role?',
+                name: 'addRoleSalary'
+            },
+            {
+                type: 'list',
+                message: 'Which department does the role belong to?',
+                name: 'addRoleDepartment',
+                choices: departments
+            },
+        ])
+        .then(response => {        
+            let chosenDepartment = response.addRoleDepartment;
+            let departmentIndex = values.findIndex(function (department) {
+            return chosenDepartment === department.department_name;
+            })
+            let thisDepartmentId = values[departmentIndex].id;
+            db.query("INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?)", [response.addRoleName, response.addRoleSalary, thisDepartmentId], (err, result) => {
+                if ( err ) {
+                    console.log("Error")
+                }
+                else console.log("Role added");
+                    init()
+                })
+        })
+    })
+    .catch( err => {
+        console.log(err);
     })
 };
 
-function addEmployee() {
-    inquirer.prompt([
-        {
-            type: 'input',
-            message: "What is the employee's first name?",
-            name: 'addFirstName'
-        },
-        {
-            type: 'input',
-            message: "What is the employee's last name?",
-            name: 'addLastName'
-        },
-        {
-            type: 'list',
-            message: "What is the employee's role",
-            name: 'addEmployeeRole',
-            choices: ['']
-        },
-        {
-            type: 'list',
-            message: "Who is the employee's manager?",
-            name: 'addEmployeeManager',
-            choices: ['']
-        },
-    ])
-    .then(response => {
-        db.query("INSERT INTO employee (first_name, last_name) VALUES (?, ?)", [response.addFirstName, response.addLastName], (err, result) => {
-          if ( err ) {
-            console.log("Error")
-          }
-          else console.log("Employee added");
-          init();
+addEmployee = () => {
+    let rolesDB = new Promise(function(resolve, reject) {
+        db.query("SELECT id, title FROM roles", function (err, results) {
+            if (err) {
+                reject(new Error("Error"));
+            } else {
+                resolve(results);
+            }
         })
     })
-    
+        rolesDB
+        .then(values => {
+            let roles = values.map(function (role) {
+                return role.title;
+            });
+            inquirer.prompt([
+            {
+                type: 'input',
+                message: "What is the employee's first name?",
+                name: 'addFirstName'
+            },
+            {
+                type: 'input',
+                message: "What is the employee's last name?",
+                name: 'addLastName'
+            },
+            {
+                type: 'list',
+                message: "What is the employee's role",
+                name: 'addEmployeeRole',
+                choices: roles
+            },
+            // {
+            //     type: 'list',
+            //     message: "Who is the employee's manager?",
+            //     name: 'addEmployeeManager',
+            //     choices: ['']
+            // },
+        ])
+            .then(response => {
+                db.query("INSERT INTO employee (first_name, last_name) VALUES (?, ?)", [response.addFirstName, response.addLastName], (err, result) => {
+                    if ( err ) {
+                        console.log("Error")
+                    }
+                    else console.log("Employee added");
+                    init();
+                })
+            })
+    })
+    .catch(console.log("Error"))
 };
 
 function updateEmployee() {
