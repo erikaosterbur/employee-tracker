@@ -162,11 +162,26 @@ addEmployee = () => {
             }
         })
     })
-        rolesDB
+
+    let employeeDB = new Promise(function(resolve, reject) {
+        db.query("SELECT * FROM employee WHERE manager_id IS NULL", function (err, results) {
+            if (err) {
+                reject(new Error("Error"));
+            } else {
+                resolve(results);
+            }
+        })
+    })
+
+
+    Promise.all([rolesDB, employeeDB])
         .then(values => {
-            let roles = values.map(function (role) {
+            let roles = values[0].map(function (role) {
                 return role.title;
             });
+            let managers = values[1].map(function (manager) {
+                return manager.first_name + ' ' + manager.last_name;
+            })
             inquirer.prompt([
             {
                 type: 'input',
@@ -184,12 +199,12 @@ addEmployee = () => {
                 name: 'addEmployeeRole',
                 choices: roles
             },
-            // {
-            //     type: 'list',
-            //     message: "Who is the employee's manager?",
-            //     name: 'addEmployeeManager',
-            //     choices: ['']
-            // },
+            {
+                type: 'list',
+                message: "Who is the employee's manager?",
+                name: 'addEmployeeManager',
+                choices: managers
+            },
         ])
             .then(response => {
                 db.query("INSERT INTO employee (first_name, last_name) VALUES (?, ?)", [response.addFirstName, response.addLastName], (err, result) => {
