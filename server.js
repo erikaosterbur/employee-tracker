@@ -207,7 +207,20 @@ addEmployee = () => {
             },
         ])
             .then(response => {
-                db.query("INSERT INTO employee (first_name, last_name) VALUES (?, ?)", [response.addFirstName, response.addLastName], (err, result) => {
+                let chosenRole = response.addEmployeeRole;
+                let roleIndex = values[0].findIndex(function (role) {
+                    return chosenRole === role.title;
+                })
+                let thisRoleId = values[0][roleIndex].id;
+
+                let chosenManager = response.addEmployeeManager;
+                let managerIndex = values[1].findIndex(function (manager) {
+                    return chosenManager === manager.first_name + ' ' + manager.last_name;
+                })
+                console.log(managerIndex);
+                let thisManagerId = values[1][managerIndex].id;
+
+                db.query("INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)", [response.addFirstName, response.addLastName, thisRoleId, thisManagerId], (err, result) => {
                     if ( err ) {
                         console.log("Error")
                     }
