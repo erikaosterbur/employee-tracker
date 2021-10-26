@@ -46,36 +46,36 @@ function init() {
         else if (response.startQuestion === "Add Department") {
             addDepartment();
         }
-        else return;
+        else db.end();
     })
 };
 
 function getDepartments() {
     db.query("SELECT * FROM departments", function (err, results){
         if( err ) {
-          console.log("Error")
+          return console.log("Error")
         }
-        else console.table(results);
+        console.table(results);
         init();
     })
 };
 
 function getEmployees() {
-    db.query("SELECT * FROM employee", function (err, results) {
+    db.query("SELECT employee.id, employee.first_name, employee.last_name, title, salary, department_name AS department, CONCAT(e.first_name, ' ', e.last_name) AS manager FROM employee JOIN roles ON employee.id = roles.id JOIN departments ON department_id = departments.id LEFT JOIN employee e ON employee.manager_id = e.id", function (err, results) {
       if (err) {
-        console.log("Error")
+        return console.log("Error")
       }
-      else console.table(results);
+      console.table(results);
       init();
     })
 };
 
 function getRoles() {
-    db.query("SELECT * FROM roles", function (err, results) {
+    db.query("SELECT roles.id, roles.title, roles.salary, departments.department_name FROM roles JOIN departments ON roles.department_id = departments.id", function (err, results) {
       if ( err ) {
-        console.log("Error")
+        return console.log("Error")
       }
-      else console.table(results);
+        console.table(results);
       init();
     })
 };
@@ -91,7 +91,7 @@ function addDepartment() {
     .then(response => {
         db.query("INSERT INTO departments (department_name) VALUES (?)", [response.addDepartment], (err, result) => {
           if ( err ) {
-            console.log("Error")
+            return console.log("Error")
           }
           else console.log("Department added");
           init();
@@ -182,6 +182,7 @@ addEmployee = () => {
             let managers = values[1].map(function (manager) {
                 return manager.first_name + ' ' + manager.last_name;
             })
+            managers.push("None");
             inquirer.prompt([
             {
                 type: 'input',
@@ -217,7 +218,7 @@ addEmployee = () => {
                 let managerIndex = values[1].findIndex(function (manager) {
                     return chosenManager === manager.first_name + ' ' + manager.last_name;
                 })
-                let thisManagerId = values[1][managerIndex].id;
+                let thisManagerId = (managerIndex === -1) ? null : values[1][managerIndex].id;
 
                 db.query("INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)", [response.addFirstName, response.addLastName, thisRoleId, thisManagerId], (err, result) => {
                     if ( err ) {
@@ -227,8 +228,8 @@ addEmployee = () => {
                     init();
                 })
             })
+        .catch(console.log("Error"))
     })
-    .catch(console.log("Error"))
 };
 
 function updateEmployee() {
