@@ -15,7 +15,7 @@ const db = mysql.createConnection(
 )
         
 
-function init() {
+init = () => {
     inquirer.prompt([
         {
             type: 'list',
@@ -50,8 +50,8 @@ function init() {
     })
 };
 
-function getDepartments() {
-    db.query("SELECT * FROM departments", function (err, results){
+getDepartments = () => {
+    db.query("SELECT * FROM departments ORDER BY id ASC", function (err, results){
         if( err ) {
           return console.log("Error")
         }
@@ -60,18 +60,18 @@ function getDepartments() {
     })
 };
 
-function getEmployees() {
-    db.query("SELECT employee.id, employee.first_name, employee.last_name, title, salary, department_name AS department, CONCAT(e.first_name, ' ', e.last_name) AS manager FROM employee JOIN roles ON employee.id = roles.id JOIN departments ON department_id = departments.id LEFT JOIN employee e ON employee.manager_id = e.id", function (err, results) {
-      if (err) {
-        return console.log("Error")
-      }
-      console.table(results);
+getEmployees = () => {
+    db.query("SELECT employee.id, employee.first_name, employee.last_name, title, department_name AS department, salary, CONCAT(e.first_name, ' ', e.last_name) AS manager FROM employee JOIN roles ON employee.role_id = roles.id JOIN departments ON roles.department_id = departments.id LEFT JOIN employee e ON employee.manager_id = e.id ORDER BY id ASC;", (err, results) => {
+            if (err) {
+                return console.log(err);
+              }
+            console.table(results);
       init();
     })
 };
 
-function getRoles() {
-    db.query("SELECT roles.id, roles.title, roles.salary, departments.department_name FROM roles JOIN departments ON roles.department_id = departments.id", function (err, results) {
+getRoles = () => {
+    db.query("SELECT roles.id, roles.title, roles.salary, departments.department_name FROM roles JOIN departments ON roles.department_id = departments.id ORDER BY id ASC", function (err, results) {
       if ( err ) {
         return console.log("Error")
       }
@@ -80,7 +80,7 @@ function getRoles() {
     })
 };
 
-function addDepartment() {
+addDepartment = () => {
     inquirer.prompt([
         {
             type: 'input',
@@ -206,7 +206,7 @@ addEmployee = () => {
                 name: 'addEmployeeManager',
                 choices: managers
             },
-        ])
+            ])
             .then(response => {
                 let chosenRole = response.addEmployeeRole;
                 let roleIndex = values[0].findIndex(function (role) {
@@ -228,11 +228,14 @@ addEmployee = () => {
                     init();
                 })
             })
-        .catch(console.log("Error"))
-    })
+        })
+        .catch( err => {
+            console.log(err)
+        })
 };
 
-function updateEmployee() {
+
+updateEmployee = () => {
 
     let employeeDB = new Promise(function(resolve, reject) {
         db.query("SELECT * FROM employee", function (err, results) {
